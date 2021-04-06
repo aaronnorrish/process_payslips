@@ -1,0 +1,19 @@
+#!/bin/bash
+
+for f in *.pdf; do
+	pdftotext -table "$f" - | python3 main.py
+
+	PERIOD="$(pdftotext -table "$f" - | perl -wne '/From:\s+(\d{1,2})\/(\d{1,2})\/(\d{4})\s+To:\s+(\d{1,2})\/(\d{1,2})\/(\d{4})/i and print $1 . "\:" . $2 . "\:". $3 . "-" . $4 . "\:" . $5. "\:" . $6')"
+
+    MONTH="$(echo "$PERIOD" | perl -wne '/(\d{1,2}):(\d{1,2}):(\d{4})-(\d{1,2}):(\d{1,2}):(\d{4})/i and print $2')"
+    YEAR="$(echo "$PERIOD" | perl -wne '/(\d{1,2}):(\d{1,2}):(\d{4})-(\d{1,2}):(\d{1,2}):(\d{4})/i and print $3')"
+
+    if [ $MONTH -lt 7 ] 
+    then
+        FOLDER="$((YEAR-1))-$((YEAR%2000))"
+    else
+        FOLDER="$((YEAR))-$(((YEAR+1)%2000))"
+    fi
+
+    mv $f ./$FOLDER/${PERIOD}.pdf
+done
